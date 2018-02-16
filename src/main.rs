@@ -20,6 +20,8 @@ use std::string::String;
 
 //const BOT_TOKEN_FILE: &str = "../res/bot_token";
 
+const LIB_FILE: &str = "./lib_file";
+
 lazy_static! {
     static ref BOT_TOKEN: String = read_bot_token();
 }

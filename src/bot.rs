@@ -2,9 +2,15 @@ use discord;
 use discord::{Discord, Connection};
 use discord::model::{Event, ReactionEmoji, Message};
 
+use serde_json;
+use std::path::Path;
+use std::fs::File;
+use std::io::{Read, Write};
+
 use game::Game;
 use command::Command;
 
+use LIB_FILE;
 use BOT_TOKEN;
 
 //#[derive(Debug, Clone, Serialize, Deserialize)]
@@ -12,23 +18,44 @@ pub struct GameBot {
     discord: Discord,
     connection: Connection,
     library: Vec<Game>,
+    exit: bool,
 }
 
 impl GameBot {
     pub fn new() -> GameBot {
         let discord = Discord::from_bot_token(&*BOT_TOKEN).expect("Login failed");
         let (mut connection, _) = discord.connect().expect("Connection failed");
+        let lib: Vec<Game>; 
+        
+        if Path::new(LIB_FILE).exists() {
+            match File::open(LIB_FILE) {
+                Ok(mut file) => {
+                    let mut json_str = String::new();
+                    let _ = file.read_to_string(&mut json_str);
+                    lib = serde_json::from_str(&*json_str).unwrap();
+                    println!("Game library loaded from disk.");
+                },
+                Err(err) => {
+                    println!("{}", err);
+                    lib = Vec::new();
+                }
+            }
+        } else {
+            lib = Vec::new();
+        }
+        
         GameBot{
             discord: discord,
             connection: connection,
-            library: Vec::new(),
+            library: lib,
+            exit: false,
         }
     }
     
     pub fn main(&mut self) {
         println!("Ready");
-        let mut exit = false;
-        while !exit {
+        //let mut exit = false;
+        while !self.exit {
             match self.connection.recv_event() {
                 Ok(Event::MessageCreate(message)) => {
                     //let _ = self.discord.add_reaction(message.channel_id, message.id, ReactionEmoji::Unicode("🤔".to_string()));
@@ -49,7 +76,7 @@ impl GameBot {
                 Ok(_) => {}
                 Err(discord::Error::Closed(code, body)) => {
                     println!("Gateway closed on us with code {:?}: {}", code, body);
-                    exit = true;
+                    self.exit = true;
                 }
                 Err(err) => println!("Receive error: {:?}", err)
             }
@@ -61,11 +88,12 @@ impl GameBot {
     fn command_handler(&mut self, message: &Message) {
         //println!("{:?}", message);
         let com = Command::parse(message);
+        println!("{:?}", com.user());
         //println!("{:?}", com);
         match com.command() {
             "~add" => self.add_game(&com),
             //"~echo" => self.echo(&com),
-            //"~exit" => self.exit(&com),
+            "~exit" => self.exit(&com),
             _ => self.com_error(&com, 1)
         }
     }
@@ -88,6 +116,10 @@ impl GameBot {
         }
     }
     
+    fn exit(&mut self, com: &Command) {
+        //if 
+    }
+    
     fn com_msg(&self, com: &Command, msg: String) {
         let _ = self.discord.send_message(*com.channel_id(), &msg, "", false);
     }
@@ -101,5 +133,16 @@ impl GameBot {
             _ => err_str = format!("Error: An unknown error occurred.")
         }
         self.com_msg(com, err_str);
+    }
+    
+    fn write_library(&self) {
+        match File::create(LIB_FILE) {
+            Ok(mut file) => {
+                let json_str = serde_json::to_string(&self.library).unwrap();
+                let _ = file.write_all(&*json_str.as_bytes());
+                println!("Preferences saved");
+            },
+            Err(err) => println!("{:?}", err),
+        }
     }
 }

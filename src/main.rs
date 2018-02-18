@@ -2,9 +2,6 @@
 extern crate text_io;
 
 #[macro_use]
-extern crate lazy_static;
-
-#[macro_use]
 extern crate serde_derive;
 extern crate serde;
 extern crate serde_json;
@@ -20,8 +17,8 @@ use std::string::String;
 
 //const BOT_TOKEN_FILE: &str = "../res/bot_token";
 
-const LIB_FILE: &str = "./lib_file";
 const BOT_TOKEN: &'static str = include_str!("../res/bot_token");
+const LIB_FILE: &str = "./lib_file";
 
 fn main() {
     //println!("{}", &*BOT_TOKEN);

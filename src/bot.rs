@@ -58,7 +58,7 @@ impl GameBot {
         while !self.exit {
             match self.connection.recv_event() {
                 Ok(Event::MessageCreate(message)) => {
-                    let _ = self.discord.add_reaction(message.channel_id, message.id, ReactionEmoji::Unicode("🤔".to_string()));
+                    //let _ = self.discord.add_reaction(message.channel_id, message.id, ReactionEmoji::Unicode("🤔".to_string()));
                     /*match &*message.content {
                         "!test" => {
                             let _ = discord.send_message(message.channel_id, "This is a reply to the test.", "", false);

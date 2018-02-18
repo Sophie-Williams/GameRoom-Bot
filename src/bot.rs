@@ -58,7 +58,7 @@ impl GameBot {
         while !self.exit {
             match self.connection.recv_event() {
                 Ok(Event::MessageCreate(message)) => {
-                    //let _ = self.discord.add_reaction(message.channel_id, message.id, ReactionEmoji::Unicode("🤔".to_string()));
+                    let _ = self.discord.add_reaction(message.channel_id, message.id, ReactionEmoji::Unicode("🤔".to_string()));
                     /*match &*message.content {
                         "!test" => {
                             let _ = discord.send_message(message.channel_id, "This is a reply to the test.", "", false);
@@ -88,11 +88,12 @@ impl GameBot {
     fn command_handler(&mut self, message: &Message) {
         //println!("{:?}", message);
         let com = Command::parse(message);
-        println!("{:?}", com.user());
+        //println!("{:?}", com.user());
         //println!("{:?}", com);
         match com.command() {
             "~add" => self.add_game(&com),
             //"~echo" => self.echo(&com),
+            "~lib" => self.show_lib(&com),
             "~exit" => self.exit(&com),
             _ => self.com_error(&com, 1)
         }
@@ -116,8 +117,18 @@ impl GameBot {
         }
     }
     
+    fn show_lib(&self, com: &Command) {
+        let mut lib_str = String::from("Game Library:");
+        for g in &self.library {
+            lib_str.push_str(&format!("\nGame: {}\tLimit: {}", g.name(), g.limit()));
+        }
+        self.com_msg(com, lib_str);
+    }
+    
     fn exit(&mut self, com: &Command) {
-        //if 
+        if com.user().discriminator == 2111 {
+            self.exit = true;
+        }
     }
     
     fn com_msg(&self, com: &Command, msg: String) {
@@ -125,7 +136,7 @@ impl GameBot {
     }
     
     fn com_error(&self, com: &Command, errno: u32) {
-        let mut err_str: String;// = String::new();
+        let mut err_str: String;
         match errno {
             1 => err_str = format!("Error: Unknown command \"{}\".", com.command()),
             2 => err_str = format!("Error: Invalid number of arguments for command \"{}\".", com.command()),

@@ -21,22 +21,10 @@ use std::string::String;
 //const BOT_TOKEN_FILE: &str = "../res/bot_token";
 
 const LIB_FILE: &str = "./lib_file";
-
-lazy_static! {
-    static ref BOT_TOKEN: String = read_bot_token();
-}
+const BOT_TOKEN: &'static str = include_str!("../res/bot_token");
 
 fn main() {
     //println!("{}", &*BOT_TOKEN);
     let mut game_bot = GameBot::new();
     game_bot.main();
-}
-
-fn read_bot_token() -> String {
-    let bot_token_u8 = include_bytes!("../res/bot_token");
-    let mut token_string = String::new();
-    for c in bot_token_u8.iter() {
-        token_string.push((*c) as char);
-    }
-    token_string
 }

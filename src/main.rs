@@ -18,7 +18,8 @@ use std::string::String;
 //const BOT_TOKEN_FILE: &str = "../res/bot_token";
 
 const BOT_TOKEN: &'static str = include_str!("../res/bot_token");
-const LIB_FILE: &str = "./lib_file";
+//const LIB_FILE: &str = "./lib_file";
+const LIB_FILE: &str = "/home/ubuntu/Desktop/lib_file";
 
 fn main() {
     //println!("{}", &*BOT_TOKEN);

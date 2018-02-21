@@ -12,7 +12,6 @@ pub struct Command {
 
 impl Command {
     pub fn parse(message: &Message) -> Command {
-        //let mut args: Vec<&str> = message.content.split_whitespace().collect();
         let mut args: Vec<String> = message.content.split_whitespace().map(|s| String::from(s)).collect();
         Command {
             user: message.author.clone(),

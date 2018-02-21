@@ -13,7 +13,6 @@ use command::Command;
 use LIB_FILE;
 use BOT_TOKEN;
 
-//#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GameBot {
     discord: Discord,
     connection: Connection,
@@ -54,21 +53,11 @@ impl GameBot {
     
     pub fn main(&mut self) {
         println!("Ready");
-        //let mut exit = false;
         while !self.exit {
             match self.connection.recv_event() {
                 Ok(Event::MessageCreate(message)) => {
+                    //this line adds thinking emojis to every message
                     //let _ = self.discord.add_reaction(message.channel_id, message.id, ReactionEmoji::Unicode("🤔".to_string()));
-                    /*match &*message.content {
-                        "!test" => {
-                            let _ = discord.send_message(message.channel_id, "This is a reply to the test.", "", false);
-                        }
-                        "!quit" => {
-                            println!("{} called quit", message.author.name);
-                            exit = true;
-                        }
-                        _ => {}
-                    }*/
                     if message.content.chars().next() == Some('~') {
                         self.command_handler(&message);
                     }
@@ -81,18 +70,27 @@ impl GameBot {
                 Err(err) => println!("Receive error: {:?}", err)
             }
         }
-        //self.write_library(LIB_FILE);
+        self.write_library();//LIB_FILE);
         println!("Exited");
     }
     
+    fn find_game(&self, name: String) -> Option<usize> {
+        for i in 0..self.library.len() {
+            if name == self.library[i as usize].name().clone() {
+                return Some(i as usize);
+            }
+        }
+        return None;
+    }
+    
     fn command_handler(&mut self, message: &Message) {
-        //println!("{:?}", message);
         let com = Command::parse(message);
-        //println!("{:?}", com.user());
-        //println!("{:?}", com);
         match com.command() {
             "~add" => self.add_game(&com),
+            "~del" => self.rem_game(&com),
+            "~rem" => self.rem_game(&com),
             //"~echo" => self.echo(&com),
+            "~set" => self.set(&com),
             "~lib" => self.show_lib(&com),
             "~exit" => self.exit(&com),
             _ => self.com_error(&com, 1)
@@ -117,6 +115,24 @@ impl GameBot {
         }
     }
     
+    fn rem_game(&mut self, com: &Command) {
+        if com.args().len() == 1 {
+            match self.find_game(com.args()[0].clone().to_uppercase()) {
+                Some(index) => {
+                    let old_game = self.library.remove(index);
+                    self.com_msg(com, format!("Game: \"{}\" was removed from the library", old_game.name()));
+                },
+                None => self.com_error(com, 5),
+            }
+        } else {
+            self.com_error(com, 2);
+        }
+    }
+    
+    fn set(&self, com: &Command) {
+        self.com_msg(com, String::from("Function set was called"));
+    }
+    
     fn show_lib(&self, com: &Command) {
         let mut lib_str = String::from("Game Library:");
         for g in &self.library {
@@ -128,6 +144,7 @@ impl GameBot {
     fn exit(&mut self, com: &Command) {
         if com.user().discriminator == 2111 {
             self.exit = true;
+            self.com_msg(com, String::from("GameRoom-Bot exited"));
         }
     }
     
@@ -141,6 +158,8 @@ impl GameBot {
             1 => err_str = format!("Error: Unknown command \"{}\".", com.command()),
             2 => err_str = format!("Error: Invalid number of arguments for command \"{}\".", com.command()),
             3 => err_str = format!("Error: Invalid argument for command \"{}\".", com.command()),
+            4 => err_str = format!("Error: User \"{}\" does not have permission to use command \"{}\".", com.user().id, com.command()),
+            5 => err_str = format!("Error: Game \"{}\" not found in library.", com.args()[0]),
             _ => err_str = format!("Error: An unknown error occurred.")
         }
         self.com_msg(com, err_str);
@@ -151,7 +170,7 @@ impl GameBot {
             Ok(mut file) => {
                 let json_str = serde_json::to_string(&self.library).unwrap();
                 let _ = file.write_all(&*json_str.as_bytes());
-                println!("Preferences saved");
+                println!("Game library saved to disk.");
             },
             Err(err) => println!("{:?}", err),
         }

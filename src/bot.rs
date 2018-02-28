@@ -92,6 +92,7 @@ impl GameBot {
             //"~echo" => self.echo(&com),
             "~set" => self.set(&com),
             "~lib" => self.show_lib(&com),
+            "~cmd" => self.list_cmds(&com),
             "~exit" => self.exit(&com),
             _ => self.com_error(&com, 1)
         }
@@ -139,6 +140,18 @@ impl GameBot {
             lib_str.push_str(&format!("\nGame: {}\tLimit: {}", g.name(), g.limit()));
         }
         self.com_msg(com, lib_str);
+    }
+
+    fn list_cmds(&self, com: &Command) {
+        let mut list_str = String::new();
+        list_str.push_str("~add name limit\n");
+	list_str.push_str("~del name OR ~rem name\n");
+	list_str.push_str("~set name\n");
+	list_str.push_str("~lib\n");
+	list_str.push_str("~cmd\n");
+	list_str.push_str("~exit (restricted)");
+
+        self.com_msg(com, list_str);
     }
     
     fn exit(&mut self, com: &Command) {

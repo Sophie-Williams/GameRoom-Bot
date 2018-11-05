@@ -87,8 +87,8 @@ impl GameBot {
         let com = Command::parse(message);
         match com.command() {
             "~add" => self.add_game(&com),
-            "~del" => self.rem_game(&com),
-            "~rem" => self.rem_game(&com),
+            "~del" => self.remove_game(&com),
+            "~rem" => self.remove_game(&com),
             //"~echo" => self.echo(&com),
             "~set" => self.set(&com),
             "~lib" => self.show_lib(&com),
@@ -116,7 +116,7 @@ impl GameBot {
         }
     }
     
-    fn rem_game(&mut self, com: &Command) {
+    fn remove_game(&mut self, com: &Command) {
         if com.args().len() == 1 {
             match self.find_game(com.args()[0].clone().to_uppercase()) {
                 Some(index) => {
